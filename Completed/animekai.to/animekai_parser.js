@@ -99,7 +99,7 @@ const testhtml = `
 		 </div><div class="sfoot"><a class="more-btn" href="https://animekai.to/browser?keyword=naruto+shippuuden">View All results <i class="fa-solid fa-arrow-right-long"></i></a></div>`
 	*/
 	static async return_response(url) {
-		const session = await fetch('http://localhost:3000/cf-clearance-scraper', {
+		const session = await fetch('http://localhost:3060/cf-clearance-scraper', {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
