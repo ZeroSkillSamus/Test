@@ -4,100 +4,37 @@ import * as cheerio from 'cheerio'
 import AnimekaiDecoder from './decoder.js'
 
 const decoder = AnimekaiDecoder
+
+// Function will remove special characters
+//  -> Will also detect multiple spaces and replace them with a single space
+function clean_anime_name(title) {
+	return title
+		.replace(/[^\w\s]/g, '')
+		.replace(/\s+/g, ' ')
+		.toLowerCase()
+}
+
+// Create episodes cache map
+
 export default class AnimeKai {
 	static BASE_URL = 'https://animekai.to'
+	static EPISODES_CACHE = new Map()
 
-	/*
-const testhtml = `
-		<div class="aitem-wrapper mini sugg">
-			<a class="aitem" href="/watch/naruto-shippuden-mv9v">
-				<div class="poster">
-					<div>
-					<img src="https://static.animekai.to/c0/i/9/8a/67664abaf05fa@100.jpg">
-					</div>
-				</div>
-			<div class="detail">
-				<h6 class="title" data-jp="NARUTO: Shippuuden">Naruto: Shippuden</h6>
-				<div class="info">
-				<span class="sub"><svg><use href="#sub"></use></svg>500</span>
-				<span class="dub"><svg><use href="#dub"></use></svg>500</span>
-				<span><b>500</b></span>
-				<span>2007</span>
-				<span><b>TV</b></span>
-				<span class="rating">PG 13</span>
-			</div>
-		</div>
-		</a>
-		<a class="aitem" href="/watch/naruto-shippuden-konoha-gakuen-special-jx19">
-		 <div class="poster">
-		 	<div>
-		 		<img src="https://static.animekai.to/cd/i/c/17/67664949a806b@100.jpg">
-		 	</div>
-		 </div>
-		 <div class="detail">
-		 	<h6 class="title" data-jp="NARUTO: Shippuuden - Shippu! &quot;Konoha Gakuen&quot; Den">Naruto Shippuden: Konoha Gakuen - Special</h6>
-			<div class="info">
-				<span class="sub"><svg><use href="#sub"></use></svg>1</span>
-				<span><b>1</b></span>
-				<span>2008</span>
-				<span><b>SPECIAL</b></span>
-				<span class="rating">PG 13</span>
-			</div>
-		</div>
-		</a>
-		<a class="aitem" href="/watch/naruto-shippuden-the-movie-the-lost-tower-65yp">
-			<div class="poster">
-				<div>
-					<img src="https://static.animekai.to/04/i/3/e1/676649f73dd66@100.jpg">
-				</div>
-			</div>
-		<div class="detail">
-			<h6 class="title" data-jp="NARUTO: Shippuuden - The Lost Tower">Naruto Shippuden the Movie: The Lost Tower</h6>
-			<div class="info">
-				<span class="sub"><svg><use href="#sub"></use></svg>1</span>
-				<span class="dub"><svg><use href="#dub"></use></svg>1</span>
-				<span>2010</span>
-				<span><b>MOVIE</b></span>
-				<span class="rating">PG 13</span>
-				</div>
-			</div>
-		</a>
-		<a class="aitem" href="/watch/naruto-shippuden-the-movie-6l3k">
-			<div class="poster">
-				<div>
-				<img src="https://static.animekai.to/93/i/4/0f/67664a064454d@100.jpg">
-				</div>
-			</div>
-		<div class="detail">
-			<h6 class="title" data-jp="NARUTO: Shippuuden Movie">Naruto Shippuden the Movie</h6>
-			<div class="info">
-				<span class="sub"><svg><use href="#sub"></use></svg>1</span>
-				<span class="dub"><svg><use href="#dub"></use></svg>1</span>
-				<span>2007</span>
-				<span><b>MOVIE</b></span>
-				<span class="rating">PG 13</span>
-			</div>
-		</div>
-		</a>
-		<a class="aitem" href="/watch/naruto-shippuden-the-movie-the-will-of-fire-j85j">
-			<div class="poster">
-				<div>
-					<img src="https://static.animekai.to/e0/i/9/8f/67664a2030d2b@100.jpg">
-				</div>
-			</div>
-		<div class="detail">
-			<h6 class="title" data-jp="NARUTO: Shippuuden - Hi no Ishi wo Tsugu Mono">Naruto Shippuden the Movie: The Will of Fire</h6>
-			<div class="info">
-				<span class="sub"><svg><use href="#sub"></use></svg>1</span>
-				<span class="dub"><svg><use href="#dub"></use></svg>1</span>
-				<span>2009</span>
-				<span><b>MOVIE</b></span>
-				<span class="rating">PG 13</span>
-				</div>
-			</div>
-		 </a>
-		 </div><div class="sfoot"><a class="more-btn" href="https://animekai.to/browser?keyword=naruto+shippuuden">View All results <i class="fa-solid fa-arrow-right-long"></i></a></div>`
-	*/
+	// Method to add episode to cache
+	static addEpisodeToCache(id, episodeData) {
+		this.EPISODES_CACHE.set(id, episodeData)
+	}
+
+	// Method to get episode from cache
+	static getEpisodeFromCache(id) {
+		return this.EPISODES_CACHE.get(id)
+	}
+
+	// Method to check if episode exists in cache
+	static isEpisodeInCache(id) {
+		return this.EPISODES_CACHE.has(id)
+	}
+
 	static async return_response(url) {
 		const session = await fetch('http://localhost:3060/cf-clearance-scraper', {
 			method: 'POST',
@@ -142,9 +79,7 @@ const testhtml = `
 		let url = `https://animekai.to/ajax/anime/search?keyword=${encodeURIComponent(name)}`
 
 		let response = await this.return_response(url)
-
 		let html = response.body.result.html
-		//console.log(html)
 		let found_element = null
 
 		let $ = cheerio.load(html)
@@ -152,7 +87,9 @@ const testhtml = `
 
 		results.each((_, elm) => {
 			let jp_name = $(elm).find('div.detail > h6.title').attr('data-jp')
-			if (jp_name && jp_name.toLowerCase() === name) {
+			jp_name = clean_anime_name(jp_name)
+
+			if (jp_name && jp_name === name) {
 				found_element = $(elm).attr('href')
 				return false
 			}
@@ -162,8 +99,21 @@ const testhtml = `
 		else return `${this.BASE_URL}${found_element}`
 	}
 
+	static async fetch_episodes_from_cache_and_set(name) {
+		name = clean_anime_name(name)
+		if (!this.isEpisodeInCache(name)) return await this.fetch_episodes(name)
+		//Check date
+		let date_added = this.EPISODES_CACHE.dateAdded
+		if (date_added > 2) {
+			return await this.fetch_episodes(name)
+		} else {
+			return this.EPISODES_CACHE.get(name).episodes
+		}
+	}
+
 	static async fetch_episodes(name) {
 		let anime_link = await this.find_desired_anime_link(name)
+		let episodes = { dateAdded: new Date() }
 		if (!anime_link) return []
 
 		let response = await this.return_response(anime_link)
@@ -175,7 +125,7 @@ const testhtml = `
 			`https://animekai.to/ajax/episodes/list?ani_id=${dataId}&_=${decoder.generate_token(dataId)}`
 		)
 		const $ = cheerio.load(response.body.result)
-		const episodes = $('a')
+		const episodes_list = $('a')
 			.map((_, el) => {
 				return {
 					number: el.attribs['num'],
@@ -186,7 +136,15 @@ const testhtml = `
 				}
 			})
 			.get()
-		return episodes
+
+		// Insert into map
+		if (episodes_list.length == 0) {
+			return []
+		}
+
+		this.EPISODES_CACHE.set(name, episodes)
+		episodes.episodes = episodes_list
+		return episodes_list
 	}
 
 	static async fetch_servers(id) {
