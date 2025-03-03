@@ -132,7 +132,7 @@ export default class AnimeKai {
 					slug: el.attribs['slug'],
 					title: $(el).find('span').text(),
 					id: el.attribs['token'],
-					is_filler: el.attribs['class'].includes('filler'),
+					isFiller: el.attribs['class'].includes('filler'),
 				}
 			})
 			.get()
