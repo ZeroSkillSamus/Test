@@ -1,9 +1,9 @@
 /** @format */
 import initCycleTLS from 'cycletls'
 import * as cheerio from 'cheerio'
-import AnimekaiDecoder from './decoder.js'
-
-const decoder = AnimekaiDecoder
+// import AnimekaiDecoder from './decoder.js'
+import { AnimekaiDecoder } from './clean/extractor.js'
+const decoder = new AnimekaiDecoder()
 
 // Function will remove special characters
 //  -> Will also detect multiple spaces and replace them with a single space
@@ -36,7 +36,6 @@ export default class AnimeKai {
 	}
 
 	static async return_response(url) {
-		console.log(url)
 		const session = await fetch('http://localhost:3060/cf-clearance-scraper', {
 			method: 'POST',
 			headers: {
@@ -62,6 +61,7 @@ export default class AnimeKai {
 				userAgent: session.headers['user-agent'],
 				headers: {
 					...session.headers,
+					'X-Requested-With': 'XMLHttpRequest',
 					cookie: session.cookies.map((cookie) => `${cookie.name}=${cookie.value}`).join('; '),
 				},
 			},
@@ -73,7 +73,6 @@ export default class AnimeKai {
 		})
 
 		if (!session || session.code != 200) return console.error(session)
-		console.log(response.body)
 		return response
 	}
 
@@ -122,11 +121,9 @@ export default class AnimeKai {
 
 		const doc = response.body
 		const dataId = doc.match(/class="rate-box".*?data-id\s*=\s*["'](.*?)['"]/)[1]
-
 		response = await this.return_response(
-			`https://animekai.to/ajax/episodes/list?ani_id=${dataId}&_=${decoder.generate_token(dataId)}`
+			`https://animekai.to/ajax/episodes/list?ani_id=${dataId}&_=${decoder.GenerateToken(dataId)}`
 		)
-		//console.log(resp)
 		const $ = cheerio.load(response.body.result)
 		const episodes_list = $('a')
 			.map((_, el) => {
@@ -151,7 +148,7 @@ export default class AnimeKai {
 	}
 
 	static async fetch_servers(id) {
-		let url = `https://animekai.to/ajax/links/list?token=${id}&_=${decoder.generate_token(id)}`
+		let url = `https://animekai.to/ajax/links/list?token=${id}&_=${decoder.GenerateToken(id)}`
 		let response = await this.return_response(url)
 		//const doc = response.body
 		const $ = cheerio.load(response.body.result)
@@ -175,16 +172,16 @@ export default class AnimeKai {
 	}
 
 	static async fetch_source(id) {
-		let orig_url = `https://animekai.to/ajax/links/view?id=${id}&_=${decoder.generate_token(id)}`
+		let orig_url = `https://animekai.to/ajax/links/view?id=${id}&_=${decoder.GenerateToken(id)}`
 		let response = await this.return_response(orig_url)
 		if (response.status != 200) return
 
-		let { url } = JSON.parse(decoder.decode_iframe_data(response.body.result).replace(/\\/gm, ''))
+		let { url } = JSON.parse(decoder.DecodeIframeData(response.body.result).replace(/\\/gm, ''))
 		url = url.replace(/\/(e|e2)\//, '/media/')
 
-		const sources = await this.return_response(url)
+		const sources = await this.return_response(url).then((x) => x.json())
 
-		let decoded = JSON.parse(decoder.decode(sources.body.result).replace(/\\/gm, ''))
+		let decoded = JSON.parse(decoder.Decode(sources.body.result).replace(/\\/gm, ''))
 		let default_stream = decoded.sources[0].file
 		let resp = await (await fetch(default_stream)).text()
 

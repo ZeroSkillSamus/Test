@@ -55,7 +55,7 @@ const getEpisodes = async (id) => {
 ]
 const getServers = async (id) => {
 	const resp = await (
-		await fetch(`https://animekai.to/ajax/links/list?token=${id}&_=${decoder.generate_token(id)}`, {
+		await fetch(`	https://animekai.to/ajax/links/list?token=${id}&_=${decoder.generate_token(id)}`, {
 			headers: {
 				...headers,
 				'X-Requested-With': 'XMLHttpRequest',
@@ -120,7 +120,6 @@ const getSources = async (id) => {
 		start: data?.skip.outro[0],
 		end: data?.skip.outro[1],
 	}
-	console.log(sources)
 	return sources
 }
 
