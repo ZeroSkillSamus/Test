@@ -36,6 +36,7 @@ export default class AnimeKai {
 	}
 
 	static async return_response(url) {
+		console.log(url)
 		const session = await fetch('http://localhost:3060/cf-clearance-scraper', {
 			method: 'POST',
 			headers: {
@@ -72,6 +73,7 @@ export default class AnimeKai {
 		})
 
 		if (!session || session.code != 200) return console.error(session)
+		console.log(response.body)
 		return response
 	}
 
@@ -124,6 +126,7 @@ export default class AnimeKai {
 		response = await this.return_response(
 			`https://animekai.to/ajax/episodes/list?ani_id=${dataId}&_=${decoder.generate_token(dataId)}`
 		)
+		//console.log(resp)
 		const $ = cheerio.load(response.body.result)
 		const episodes_list = $('a')
 			.map((_, el) => {
