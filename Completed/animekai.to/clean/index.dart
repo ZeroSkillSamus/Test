@@ -36,7 +36,6 @@ class AnimekaiApi {
     if (dataId == null) {
       throw Exception("Failed to get data-id");
     }
-    print(dataId);
     final episodeResponse = await dio.get(
       'https://animekai.to/ajax/episodes/list?ani_id=$dataId&_=${decoder.generateToken(dataId)}',
       options: Options(headers: headers),
@@ -106,7 +105,7 @@ void main(List<String> args) async {
   final stopwatch = Stopwatch();
   stopwatch.start();
   var animekai = new AnimekaiApi();
-  var a = await animekai.getSources("mxWbnEz1DQ");
+  var a = await animekai.getSources("mxefmE7zAQ");
   stopwatch.stop();
   print(stopwatch.elapsedMilliseconds);
   print(a);

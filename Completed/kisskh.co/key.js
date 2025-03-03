@@ -114,7 +114,7 @@ function encryptBlock(_0x13a508, _0x5baaa1) {
  * @param {string} id
  * @param {string} version
  */
-export default function getKey(id, version) {
+export default function getKKey(id, version) {
   const data = [
     "",
     id,
@@ -137,9 +137,6 @@ export default function getKey(id, version) {
   const [_0x3db385, _0x2f9d88] = stringToWordArray(_0x278f64);
 
   processBlock(_0x3db385);
-  console.log(_0x3db385);
 
   return wordArrayToHex(_0x3db385, _0x2f9d88).toUpperCase();
 }
-
-console.log(getKey(1234));
