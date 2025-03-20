@@ -80,9 +80,10 @@ export default class AnimeKai {
 	static async find_desired_anime_link(name) {
 		let url = `https://animekai.to/ajax/anime/search?keyword=${encodeURIComponent(name)}`
 
-		//let response = await this.return_response(url)
-		let response = await axios.get(url).catch(error => console.error(error))
-		let html = response.data.result.html
+		let response = await this.return_response(url)
+		console.log(response)
+		//let response = await axios.get(url).catch(error => console.error(error))
+		let html = response.body.result.html
 		let found_element = null
 
 		let $ = cheerio.load(html)
@@ -119,18 +120,19 @@ export default class AnimeKai {
 		let episodes = { dateAdded: new Date() }
 		if (!anime_link) return []
 
-		//let response = await this.return_response(anime_link)
-		let response = await axios.get(anime_link).catch(err => console.error(`Failed Bro ${err}`))
-		const doc = response.data
+		let response = await this.return_response(anime_link)
+		console.log(response)
+		//let response = await axios.get(anime_link).catch(err => console.error(`Failed Bro ${err}`))
+		const doc = response.body
 		const dataId = doc.match(/class="rate-box".*?data-id\s*=\s*["'](.*?)['"]/)[1]
-		// response = await this.return_response(
-		// 	`https://animekai.to/ajax/episodes/list?ani_id=${dataId}&_=${decoder.GenerateToken(dataId)}`
-		// )
-		response = await axios.get(
+		response = await this.return_response(
 			`https://animekai.to/ajax/episodes/list?ani_id=${dataId}&_=${decoder.GenerateToken(dataId)}`
 		)
+		// response = await axios.get(
+		// 	`https://animekai.to/ajax/episodes/list?ani_id=${dataId}&_=${decoder.GenerateToken(dataId)}`
+		// )
 
-		const $ = cheerio.load(response.data.result)
+		const $ = cheerio.load(response.body.result)
 		const episodes_list = $('a')
 			.map((_, el) => {
 				return {
@@ -155,10 +157,10 @@ export default class AnimeKai {
 
 	static async fetch_servers(id) {
 		let url = `https://animekai.to/ajax/links/list?token=${id}&_=${decoder.GenerateToken(id)}`
-		//let response = await this.return_response(url)
-		let response = await axios.get(url).catch(err => console.error(err)) 
+		let response = await this.return_response(url)
+		//let response = await axios.get(url).catch(err => console.error(err)) 
 
-		const $ = cheerio.load(response.data.result)
+		const $ = cheerio.load(response.body.result)
 		const servers = $('.server-items')
 			.map((i, el) => {
 				const type = el.attribs['data-id']
@@ -180,11 +182,11 @@ export default class AnimeKai {
 
 	static async fetch_source(id) {
 		let orig_url = `https://animekai.to/ajax/links/view?id=${id}&_=${decoder.GenerateToken(id)}`
-		//let response = await this.return_response(orig_url)
-		let response = await axios.get(orig_url).catch(err => console.error(err))
-		if (response.status != 200) return
+		let response = await this.return_response(orig_url)
+		//let response = await axios.get(orig_url).catch(err => console.error(err))
+		//if (response.status != 200) return
 
-		let { url } = JSON.parse(decoder.DecodeIframeData(response.data.result).replace(/\\/gm, ''))
+		let { url } = JSON.parse(decoder.DecodeIframeData(response.body.result).replace(/\\/gm, ''))
 		url = url.replace(/\/(e|e2)\//, '/media/')
 
 		//const sources = await this.return_response(url).then((x) => x.json())
