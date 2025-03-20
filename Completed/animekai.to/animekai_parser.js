@@ -37,7 +37,7 @@ export default class AnimeKai {
 	}
 
 	static async return_response(url) {
-		const session = await fetch('http://localhost:3000/cf-clearance-scraper', {
+		const session = await fetch('http://localhost:3060/cf-clearance-scraper', {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
