@@ -37,7 +37,7 @@ export default class AnimeKai {
 	}
 
 	static async return_response(url) {
-		const session = await fetch('http://localhost:3060/cf-clearance-scraper', {
+		const session = await fetch('http://localhost:3000/cf-clearance-scraper', {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
@@ -81,7 +81,6 @@ export default class AnimeKai {
 		let url = `https://animekai.to/ajax/anime/search?keyword=${encodeURIComponent(name)}`
 
 		let response = await this.return_response(url)
-		console.log(response)
 		//let response = await axios.get(url).catch(error => console.error(error))
 		let html = response.body.result.html
 		let found_element = null
@@ -121,9 +120,8 @@ export default class AnimeKai {
 		if (!anime_link) return []
 
 		let response = await this.return_response(anime_link)
-		console.log(response)
 		//let response = await axios.get(anime_link).catch(err => console.error(`Failed Bro ${err}`))
-		const doc = response.body
+		const doc = response.body.result
 		const dataId = doc.match(/class="rate-box".*?data-id\s*=\s*["'](.*?)['"]/)[1]
 		response = await this.return_response(
 			`https://animekai.to/ajax/episodes/list?ani_id=${dataId}&_=${decoder.GenerateToken(dataId)}`
