@@ -194,14 +194,14 @@ export default class AnimeKai {
 		let default_stream = decoded.sources[0].file
 		let resp = await (await fetch(default_stream)).text()
 
-		let iframeLinks = { sources: [] }
+		let iframeLinks = { m3u8_links: [] }
 		const resolutions = resp.match(/(RESOLUTION=)(.*)(\s*?)(\s*.*)/g)
 		resolutions?.forEach((str) => {
 			let index_of_m3u8 = default_stream.indexOf('list')
 
 			const resolution = str.split('\n')[0].split('x')[1]
 			const stream_url = `${default_stream.substring(0, index_of_m3u8)}${str.split('\n')[1].trim()}`
-			iframeLinks.sources.push({
+			iframeLinks.m3u8_links.push({
 				url: stream_url,
 				quality: resolution,
 				is_m3u8: stream_url.includes('.m3u8'),
